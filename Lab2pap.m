@@ -1,140 +1,149 @@
-clear;
-clc;
-close all;
+% Iejimu reiksmes
+x1 = 0:0.05:1;
+x2 = 0:0.05:1;
 
-% Mokymo duomenys
-x = linspace(0.1, 1, 20);
-
-for n = 1:20
-    d(n) = ((1 + 0.6*sin(2*pi*x(n)/0.7)) ...
-        + 0.3*sin(2*pi*x(n))) / 2;
-end
-
-% Pradiniai svoriai
-w1 = randn(1);
-w2 = randn(1);
-w3 = randn(1);
-w4 = randn(1);
-
-b1 = randn(1);
-b2 = randn(1);
-b3 = randn(1);
-b4 = randn(1);
-
-wo1 = randn(1);
-wo2 = randn(1);
-wo3 = randn(1);
-wo4 = randn(1);
-
-bo = randn(1);
-
-% Mokymosi parametrai
+% Mokymosi greitis
 eta = 0.1;
-iterations = 80000;
 
-% Mokymas
-for iteration = 1:iterations
+% Iteraciju skaicius
+iteracijos = 80000;
 
-    for n = 1:20
+% Svoriai
+w11 = randn * 0.5;
+w12 = randn * 0.5;
+w21 = randn * 0.5;
+w22 = randn * 0.5;
+w31 = randn * 0.5;
+w32 = randn * 0.5;
+w41 = randn * 0.5;
+w42 = randn * 0.5;
 
-        % Paslėptas sluoksnis
-        v1 = x(n) * w1 + b1;
-        y1 = 1 / (1 + exp(-v1));
+% Paslepto sluoksnio poslinkiai
+b1 = 0;
+b2 = 0;
+b3 = 0;
+b4 = 0;
 
-        v2 = x(n) * w2 + b2;
-        y2 = 1 / (1 + exp(-v2));
+% Isejimo svoriai
+wo1 = randn * 0.5;
+wo2 = randn * 0.5;
+wo3 = randn * 0.5;
+wo4 = randn * 0.5;
 
-        v3 = x(n) * w3 + b3;
-        y3 = 1 / (1 + exp(-v3));
+% Isejimo poslinkis
+bo = 0;
 
-        v4 = x(n) * w4 + b4;
-        y4 = 1 / (1 + exp(-v4));
+% Tinklo mokymas
+for iteracija = 1:iteracijos
 
-        % Išėjimo neuronas
-        y = y1 * wo1 + y2 * wo2 + y3 * wo3 + y4 * wo4 + bo;
+    for i = 1:length(x1)
 
-        % Klaida
-        e = d(n) - y;
+        for j = 1:length(x2)
 
-        % Backpropagation
-        delta_out = e;
+            % Apskaiciuojama norima reiksme
+            d = (sin(2*pi*x1(i)) + cos(2*pi*x2(j)) + 2) / 4;
 
-        delta1 = y1 * (1 - y1) * delta_out * wo1;
-        delta2 = y2 * (1 - y2) * delta_out * wo2;
-        delta3 = y3 * (1 - y3) * delta_out * wo3;
-        delta4 = y4 * (1 - y4) * delta_out * wo4;
+            % Paslepto sluoksnio neuronai
+            v1 = w11*x1(i) + w12*x2(j) + b1;
+            v2 = w21*x1(i) + w22*x2(j) + b2;
+            v3 = w31*x1(i) + w32*x2(j) + b3;
+            v4 = w41*x1(i) + w42*x2(j) + b4;
 
-        % Išėjimo sluoksnio svoriai
-        wo1 = wo1 + eta * delta_out * y1;
-        wo2 = wo2 + eta * delta_out * y2;
-        wo3 = wo3 + eta * delta_out * y3;
-        wo4 = wo4 + eta * delta_out * y4;
+            % Sigmoides funkcija
+            h1 = 1/(1+exp(-v1));
+            h2 = 1/(1+exp(-v2));
+            h3 = 1/(1+exp(-v3));
+            h4 = 1/(1+exp(-v4));
 
-        bo = bo + eta * delta_out;
+            % Apskaiciuojamas tinklo isejimas
+            y = wo1*h1 + wo2*h2 + wo3*h3 + wo4*h4 + bo;
 
-        % Paslėpto sluoksnio svoriai
-        w1 = w1 + eta * delta1 * x(n);
-        w2 = w2 + eta * delta2 * x(n);
-        w3 = w3 + eta * delta3 * x(n);
-        w4 = w4 + eta * delta4 * x(n);
+            % Apskaiciuojama klaida
+            e = d - y;
 
-        b1 = b1 + eta * delta1;
-        b2 = b2 + eta * delta2;
-        b3 = b3 + eta * delta3;
-        b4 = b4 + eta * delta4;
+            % Backpropagation
+            delta_o = e;
 
+            delta1 = delta_o * wo1 * h1*(1-h1);
+            delta2 = delta_o * wo2 * h2*(1-h2);
+            delta3 = delta_o * wo3 * h3*(1-h3);
+            delta4 = delta_o * wo4 * h4*(1-h4);
+
+            % Atnaujinami isejimo svoriai
+            wo1 = wo1 + eta*delta_o*h1;
+            wo2 = wo2 + eta*delta_o*h2;
+            wo3 = wo3 + eta*delta_o*h3;
+            wo4 = wo4 + eta*delta_o*h4;
+
+            bo = bo + eta*delta_o;
+
+            % Atnaujinami paslepto sluoksnio svoriai
+            w11 = w11 + eta*delta1*x1(i);
+            w12 = w12 + eta*delta1*x2(j);
+
+            w21 = w21 + eta*delta2*x1(i);
+            w22 = w22 + eta*delta2*x2(j);
+
+            w31 = w31 + eta*delta3*x1(i);
+            w32 = w32 + eta*delta3*x2(j);
+
+            w41 = w41 + eta*delta4*x1(i);
+            w42 = w42 + eta*delta4*x2(j);
+
+            % Atnaujinami poslinkiai
+            b1 = b1 + eta*delta1;
+            b2 = b2 + eta*delta2;
+            b3 = b3 + eta*delta3;
+            b4 = b4 + eta*delta4;
+
+        end
     end
 end
 
-% Tinklo rezultatas
-for n = 1:20
+% Apskaiciuojamas aproksimuotas pavirsius
+n = 1;
 
-    v1 = x(n) * w1 + b1;
-    y1 = 1 / (1 + exp(-v1));
+for i = 1:length(x1)
 
-    v2 = x(n) * w2 + b2;
-    y2 = 1 / (1 + exp(-v2));
+    for j = 1:length(x2)
 
-    v3 = x(n) * w3 + b3;
-    y3 = 1 / (1 + exp(-v3));
+        v1 = w11*x1(i) + w12*x2(j) + b1;
+        v2 = w21*x1(i) + w22*x2(j) + b2;
+        v3 = w31*x1(i) + w32*x2(j) + b3;
+        v4 = w41*x1(i) + w42*x2(j) + b4;
 
-    v4 = x(n) * w4 + b4;
-    y4 = 1 / (1 + exp(-v4));
+        h1 = 1/(1+exp(-v1));
+        h2 = 1/(1+exp(-v2));
+        h3 = 1/(1+exp(-v3));
+        h4 = 1/(1+exp(-v4));
 
-    y_network(n) = y1 * wo1 + y2 * wo2 + y3 * wo3 + y4 * wo4 + bo;
+        Y(n) = wo1*h1 + wo2*h2 + wo3*h3 + wo4*h4 + bo;
 
+        n = n + 1;
+    end
 end
 
-% Rezultatai
-fprintf('Mokymas baigtas.\n');
+% Paruosiamas pavirsius braizymui
+[X1,X2] = meshgrid(x1,x2);
 
-fprintf('w1 = %.6f\n', w1);
-fprintf('w2 = %.6f\n', w2);
-fprintf('w3 = %.6f\n', w3);
-fprintf('w4 = %.6f\n', w4);
+% Apskaiciuojamas norimas pavirsius
+D = (sin(2*pi*X1) + cos(2*pi*X2) + 2) / 4;
 
-fprintf('b1 = %.6f\n', b1);
-fprintf('b2 = %.6f\n', b2);
-fprintf('b3 = %.6f\n', b3);
-fprintf('b4 = %.6f\n', b4);
+% Pakeiciamas Y masyvo formatas
+Y = reshape(Y,length(x2),length(x1));
 
-fprintf('wo1 = %.6f\n', wo1);
-fprintf('wo2 = %.6f\n', wo2);
-fprintf('wo3 = %.6f\n', wo3);
-fprintf('wo4 = %.6f\n', wo4);
-
-fprintf('bo = %.6f\n', bo);
-
-% Aproksimacijos grafikas
+% Braizomas norimas pavirsius
 figure;
+surf(X1,X2,D);
+title('Norimas pavirsius');
+xlabel('x_1');
+ylabel('x_2');
+zlabel('d');
 
-plot(x, d, 'o-');
-hold on;
-plot(x, y_network, 'x-');
-
-xlabel('x');
-ylabel('y');
-title('Daugiasluoksnio perceptrono aproksimacija');
-
-legend('Norimas atsakas d(x)', 'Tinklo atsakas y(x)');
-grid on;
+% Braizomas aproksimuotas pavirsius
+figure;
+surf(X1,X2,Y);
+title('Neuroninio tinklo aproksimuotas pavirsius');
+xlabel('x_1');
+ylabel('x_2');
+zlabel('y');
